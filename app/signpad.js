@@ -46,7 +46,6 @@ export class SignPad {
     this.ctx.lineJoin = 'round';
   }
   toDataURL(){
-    // If blank? detect by checking pixel data - cheap sample
     const img = this.ctx.getImageData(0,0,this.canvas.width,this.canvas.height).data;
     let nonWhite = 0;
     for(let i=0;i<img.length;i+=40){

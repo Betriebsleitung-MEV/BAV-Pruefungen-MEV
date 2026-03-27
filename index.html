@@ -1,85 +1,310 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>BAV Prüfungserfassung – HPP / PP</title>
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prüfungserfassung – BAV Prüfprotokoll (Test)</title>
   <link rel="stylesheet" href="styles/style.css" />
 </head>
-
 <body>
-<header class="header">
-  <h1>BAV Prüfungserfassung</h1>
-  <p class="subtitle">Erfassung gemäss BAV‑Prüfprotokoll (Anhang 9)</p>
-</header>
+  <header class="topbar no-print">
+    <div class="topbar__title">Prüfungserfassung (Test) – BAV Prüfprotokoll</div>
+  </header>
 
-<main class="container">
+  <main class="container">
+    <!-- Seite 1 -->
+    <section class="a4 page" id="page1">
+      <div class="docHeader">
+        <div class="docHeader__left">
+          <div class="confed">Schweizerische Eidgenossenschaft</div>
+          <div class="confed">Confédération suisse</div>
+          <div class="confed">Confederazione Svizzera</div>
+          <div class="confed">Confederaziun svizra</div>
+        </div>
+        <div class="docHeader__right">
+          <div class="dept">Eidgenössisches Departement für Umwelt, Verkehr, Energie und Kommunikation</div>
+          <div class="office"><b>Bundesamt für Verkehr</b></div>
+          <div class="division">Abteilung Infrastruktur</div>
+        </div>
+      </div>
 
-<section class="section">
-  <h2>1. Prüfling / Identifikation</h2>
-  <div class="form-grid">
-    <div class="form-field">
-      <label>Führerscheinnummer</label>
-      <input id="fuehrerscheinnummer" />
-      <small>Ohne Führerscheinnummer gilt Identifikation gemäss <b>VTE 10</b>.</small>
-    </div>
-    <div class="form-field"><label>Nachname *</label><input id="nachname" required /></div>
-    <div class="form-field"><label>Vorname *</label><input id="vorname" required /></div>
-    <div class="form-field"><label>Geburtsdatum *</label><input id="gebdatum" type="date" required /></div>
-  </div>
-</section>
+      <h1 class="docTitle">Prüfungsprotokoll für Triebfahrzeugführer und -führerinnen</h1>
+      <div class="docSubTitle">Anhang 9 zur Richtlinie Fähigkeits- und periodische Prüfungen</div>
 
-<section class="section">
-  <h2>2. Prüfung</h2>
-  <div class="form-grid">
-    <div class="form-field">
-      <label>Prüfungsart</label>
-      <select id="pruefungsart">
-        <option value="HPP" selected>HPP – Praxis</option>
-        <option value="PP">PP – Theorie</option>
-      </select>
-    </div>
-    <div class="form-field"><label>Prüfungsdatum</label><input type="date" /></div>
-  </div>
-</section>
+      <div class="grid2">
+        <div class="box">
+          <div class="box__title">Triebfahrzeugführer / -führerin</div>
 
-<section class="section">
-  <h2>3. EVU(s) Betriebsvorschriften</h2>
-  <div id="evu-container" class="checkbox-group"></div>
-</section>
+          <div class="formRow">
+            <label>Anrede</label>
+            <select id="anrede">
+              <option value="">—</option>
+              <option>Herr</option>
+              <option>Frau</option>
+            </select>
+          </div>
 
-<section class="section">
-  <h2>4. Netz / Netzteil(e)</h2>
-  <div id="netz-container" class="checkbox-group"></div>
-</section>
+          <div class="formRow">
+            <label>Name *</label>
+            <input id="name" type="text" placeholder="Nachname" />
+          </div>
 
-<section class="section">
-  <h2>5. Praktische Durchführung (HPP)</h2>
-  <table class="fahrten-table">
-    <thead><tr><th>Dienstart</th><th>von</th><th>nach</th><th>Baureihe</th></tr></thead>
-    <tbody id="fahrten"></tbody>
-  </table>
-  <button type="button">Fahrt hinzufügen</button>
-</section>
+          <div class="formRow">
+            <label>Vorname *</label>
+            <input id="vorname" type="text" placeholder="Vorname" />
+          </div>
 
-<section class="section">
-  <h2>6. Unterschriften</h2>
-  <div class="signature-grid">
-    <canvas id="sig-pex"></canvas>
-    <canvas id="sig-pruefling"></canvas>
-  </div>
-</section>
+          <div class="formRow">
+            <label>Adresse</label>
+            <input id="adresse" type="text" placeholder="Strasse / Nr." />
+          </div>
 
-<section class="section" id="abschluss">
-  <h2>Abschluss</h2>
-  <p>Download und Druck erst nach vollständiger Erfassung.</p>
-  <button id="download">JSON herunterladen</button>
-  <button onclick="window.print()">Drucken</button>
-</section>
+          <div class="formRow formRow--split">
+            <div>
+              <label>PLZ</label>
+              <input id="plz" type="text" />
+            </div>
+            <div>
+              <label>Ort</label>
+              <input id="ort" type="text" />
+            </div>
+          </div>
 
-</main>
+          <div class="formRow formRow--split">
+            <div>
+              <label>Geburtsdatum <span class="hint">(VTE 10: Pflicht ohne FS)</span></label>
+              <input id="gebdatum" type="date" />
+            </div>
+            <div>
+              <label>Staatsangehörigkeit</label>
+              <input id="staat" type="text" />
+            </div>
+          </div>
 
-<script src="app/app.js"></script>
+          <div class="formRow">
+            <label>Unternehmen</label>
+            <input id="unternehmen" type="text" value="MEV Schweiz AG" />
+          </div>
+
+          <div class="formRow formRow--split">
+            <div>
+              <label>Führerscheinart</label>
+              <select id="fsArt">
+                <option value="">—</option>
+                <option value="CH">CH</option>
+                <option value="EU">EU</option>
+              </select>
+            </div>
+            <div>
+              <label>Führerscheinnummer (Primärschlüssel)</label>
+              <input id="fsNr" type="text" placeholder="z. B. 12307 oder DE 71 2014 20 57" />
+              <div class="hint">Ohne Führerscheinnummer gilt Identifikation gemäss VTE 10: Vorname, Name und Geburtsdatum sind Pflicht.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box__title">Prüfungsexperte / -expertin</div>
+
+          <div class="formRow">
+            <label>Name, Vorname</label>
+            <input id="pexName" type="text" placeholder="PEX" />
+          </div>
+
+          <div class="formRow">
+            <label>Ausweis - Nr. BAV (PEX)</label>
+            <input id="pexBav" type="text" placeholder="z. B. 445" />
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="box__title">Prüfungsart</div>
+          <div class="checkGrid">
+            <label class="check"><input type="radio" name="pruefart" value="F" /> Fähigkeitsprüfung</label>
+            <label class="check"><input type="radio" name="pruefart" value="P" checked /> Periodische Prüfung</label>
+            <label class="check"><input type="radio" name="pruefart" value="E" /> Erweiterung</label>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="box__title">HPP (Praxis) – Pflichtfahrzeug</div>
+          <div class="formRow">
+            <label>Baureihe (Code) – mind. 1</label>
+            <select id="hauptfahrzeug" class="mono"></select>
+          </div>
+
+          <div class="formRow">
+            <label>Weitere Fahrzeuge (Codes) – Selbstauskunft (optional)</label>
+            <input id="weitereFahrzeuge" class="mono" type="text" placeholder="z. B. 185, 186" />
+            <div class="hint">Hinweis: Separate Nachweise liegen nicht vor; Bestätigung durch Prüfling separat im Protokoll vermerkt.</div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="box__title">Erweiterungen / Module / Kategorien</div>
+          <div class="checkGrid checkGrid--3">
+            <label class="check"><input id="modZV" type="checkbox" /> ZV</label>
+            <label class="check"><input id="modETCS" type="checkbox" /> ETCS</label>
+            <label class="check"><input id="modETCSSH" type="checkbox" /> ETCS ohne SH</label>
+            <label class="check"><input id="modAV" type="checkbox" /> AV</label>
+            <label class="check"><input id="modP" type="checkbox" /> P</label>
+            <label class="check"><input id="modG" type="checkbox" /> G</label>
+          </div>
+
+          <div class="formRow formRow--split">
+            <div>
+              <label>Kategorie (Text)</label>
+              <input id="kategorie" type="text" placeholder="z. B. B" />
+            </div>
+            <div>
+              <label>Praktische Einschränkung Vmax</label>
+              <input id="vmax" type="text" placeholder="km/h" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px;">
+        <div class="box">
+          <div class="box__title">Netz / Netzteil(e) (Codes)</div>
+          <div id="netzList" class="chipList"></div>
+          <div class="hint">Checkboxen. Quelle: assets/data/netzteile.json (erweiterbar).</div>
+        </div>
+        <div class="box">
+          <div class="box__title">EVU(s) Betriebsvorschriften (Codes)</div>
+          <div id="evuList" class="chipList"></div>
+          <div class="hint">Nur Codes (PEX-selbsterklärend).</div>
+        </div>
+      </div>
+
+      <div class="footerNote">Seite 1 von 2</div>
+    </section>
+
+    <!-- Seite 2 -->
+    <section class="a4 page" id="page2">
+      <div class="docHeader docHeader--compact">
+        <div class="docHeader__right">
+          <div class="dept">Eidgenössisches Departement für Umwelt, Verkehr, Energie und Kommunikation</div>
+          <div class="office"><b>Bundesamt für Verkehr</b></div>
+          <div class="division">Abteilung Infrastruktur</div>
+        </div>
+      </div>
+
+      <h2 class="sectionTitle">Praktische Prüfung (HPP)</h2>
+
+      <div class="grid2">
+        <div class="box">
+          <div class="formRow formRow--split">
+            <div>
+              <label>Ausweisnummer / Führerscheinnummer</label>
+              <input id="ausweisNr2" class="mono" type="text" placeholder="wird aus Seite 1 übernommen" />
+            </div>
+            <div>
+              <label>Datum Prüfung</label>
+              <input id="datum2" type="date" />
+            </div>
+          </div>
+
+          <div class="hint">Dienstarten: SD = Streckendienst, ZV = Zugvorbereitung, RD = Rangierbewegungen, T = Strassenbahn</div>
+
+          <table class="tbl" id="fahrtenTable">
+            <thead>
+              <tr>
+                <th>Dienstart</th>
+                <th>Zug/R Nr.</th>
+                <th>von</th>
+                <th>bis / R</th>
+                <th>V max</th>
+                <th>Anhlast t</th>
+                <th>km</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <div class="rowActions no-print">
+            <button id="btnAddFahrt" class="btn btn--small">Fahrt hinzufügen</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box__title">Leistungsqualifizierung gesamt</div>
+          <div class="checkGrid">
+            <label class="check"><input type="radio" name="qual" value="sehr gut" /> sehr gut</label>
+            <label class="check"><input type="radio" name="qual" value="gut" checked /> gut</label>
+            <label class="check"><input type="radio" name="qual" value="genügend" /> genügend</label>
+            <label class="check"><input type="radio" name="qual" value="ungenügend" /> ungenügend</label>
+          </div>
+
+          <div class="formRow">
+            <label>Begründung</label>
+            <textarea id="begruendung2" rows="6"></textarea>
+          </div>
+
+          <div class="box__title">Ergebnis der praktischen Prüfung</div>
+          <div class="checkGrid">
+            <label class="check"><input type="radio" name="result" value="bestanden" checked /> Prüfung bestanden</label>
+            <label class="check"><input type="radio" name="result" value="nicht bestanden" /> Prüfung nicht bestanden</label>
+          </div>
+
+          <div class="formRow formRow--split">
+            <div>
+              <label>Ort</label>
+              <input id="ort2" type="text" />
+            </div>
+            <div>
+              <label>Datum</label>
+              <input id="ortdatum2" type="date" />
+            </div>
+          </div>
+
+          <div class="sigGrid">
+            <div class="sigBox">
+              <div class="sigTitle">Unterschrift Prüfungsexperte</div>
+              <canvas id="sigPex" width="380" height="140"></canvas>
+              <div class="sigActions no-print">
+                <button class="btn btn--small" data-clear="sigPex">Löschen</button>
+              </div>
+            </div>
+
+            <div class="sigBox">
+              <div class="sigTitle">Unterschrift geprüfte Person</div>
+              <canvas id="sigPruefling" width="380" height="140"></canvas>
+              <div class="sigActions no-print">
+                <button class="btn btn--small" data-clear="sigPruefling">Löschen</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="formRow">
+            <label>Selbstauskunft – weitere Fahrzeuge (falls angegeben)</label>
+            <textarea id="selbHinweis" rows="3" class="mono" placeholder="Separate Nachweise liegen nicht vor; Bestätigung durch Prüfling."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="footerNote">Seite 2 von 2</div>
+    </section>
+
+    <section class="no-print" style="max-width:980px;margin:0 auto 16px;">
+      <div id="status" class="status"></div>
+    </section>
+
+    <!-- Abschluss (Download/Druck/Reset erst hier sichtbar) -->
+    <section class="no-print" style="max-width:980px;margin:0 auto 40px;">
+      <div id="abschlussActions" class="status" hidden>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
+          <button id="btnExport" class="btn">JSON exportieren</button>
+          <button id="btnPrint" class="btn btn--secondary">Drucken</button>
+          <button id="btnReset" class="btn btn--danger">Zurücksetzen</button>
+        </div>
+        <div class="hint" style="margin-top:8px;">Abschluss erscheint erst, wenn Pflichtfelder (VTE 10) und Unterschriften vollständig sind.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="app/app.js"></script>
 </body>
 </html>

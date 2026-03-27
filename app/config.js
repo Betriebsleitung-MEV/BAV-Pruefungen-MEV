@@ -3,12 +3,8 @@ export const CONFIG = {
   primaryKey: 'fuehrerscheinnummer',
   dataPaths: {
     baureihen: 'assets/data/baureihen.json',
-    evuBv: 'assets/data/evu_bv.json',
-    pruefarten: 'assets/data/pruefarten.json',
-    netzteile: 'assets/data/netzteile.json'
-  },
-  submission: {
-    mode: 'download', // 'download' | 'webhook'
-    webhookUrl: ''
+    evuBv: 'assets/data/evu_betriebsvorschriften.json',
+    netzteile: 'assets/data/netzteile.json',
+    pruefarten: 'assets/data/pruefarten.json'
   }
 };

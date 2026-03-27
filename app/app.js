@@ -11,14 +11,13 @@ const state = {
     fuehrerscheinnummer: '',
     name: '',
     vorname: '',
-    bav_nummer: ''
+    geburtsdatum: ''
   },
   pruefung: {
     pruefart: 'HPP',
     datum: '',
     pruefer_name: '',
     pruefer_bav: '',
-    pruefer_id: '',
     hauptfahrzeug_code: '',
     evu_bv_codes: [],
     netzteil_codes: []
@@ -43,8 +42,6 @@ const state = {
 };
 
 let signPex, signPruefling;
-let baureihen = [];
-let evu = [];
 
 function setStatus(msg, ok=true){
   const s = qs('#status');
@@ -53,11 +50,11 @@ function setStatus(msg, ok=true){
 }
 
 function syncMirrorFields(){
-  // copy FS number into page 2 field
-  qs('#ausweisNr2').value = qs('#fsNr').value;
+  const a2 = qs('#ausweisNr2');
+  if(a2) a2.value = qs('#fsNr').value;
 }
 
-function buildFahrtenRow(data={}){
+function buildFahrtenRow(){
   const tr = document.createElement('tr');
   const fields = [
     {k:'dienstart', type:'select', opts:['','SD','ZV','RD','T']},
@@ -75,15 +72,13 @@ function buildFahrtenRow(data={}){
     if(f.type==='select'){
       el = document.createElement('select');
       f.opts.forEach(o=>{
-        const op=document.createElement('option');
-        op.value=o; op.textContent=o||'—';
+        const op = document.createElement('option');
+        op.value = o; op.textContent = o || '—';
         el.appendChild(op);
       });
-      el.value = data[f.k] || '';
     } else {
       el = document.createElement('input');
       el.type = 'text';
-      el.value = data[f.k] || '';
     }
     el.dataset.key = f.k;
     td.appendChild(el);
@@ -91,33 +86,78 @@ function buildFahrtenRow(data={}){
   });
 
   const tdDel = document.createElement('td');
+  tdDel.classList.add('no-print');
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'btn btn--small';
   btn.textContent = '×';
-  btn.title = 'Zeile löschen';
   btn.addEventListener('click', ()=> tr.remove());
   tdDel.appendChild(btn);
-  tdDel.classList.add('no-print');
   tr.appendChild(tdDel);
 
   return tr;
 }
 
 function collectFahrten(){
-  const rows = qsa('#fahrtenTable tbody tr');
-  return rows.map(tr=>{
+  return qsa('#fahrtenTable tbody tr').map(tr=>{
     const obj = {};
-    qsa('input,select', tr).forEach(el=>{ obj[el.dataset.key] = el.value; });
+    qsa('input,select', tr).forEach(el=> obj[el.dataset.key] = el.value);
     return obj;
-  }).filter(r=> Object.values(r).some(v=>String(v||'').trim()!==''));
+  }).filter(r => Object.values(r).some(v => String(v||'').trim() !== ''));
+}
+
+function collectState(){
+  state.mitarbeiter.fuehrerscheinart = qs('#fsArt').value;
+  state.mitarbeiter.fuehrerscheinnummer = qs('#fsNr').value.trim();
+  state.mitarbeiter.name = qs('#name').value.trim();
+  state.mitarbeiter.vorname = qs('#vorname').value.trim();
+  state.mitarbeiter.geburtsdatum = qs('#gebdatum').value || '';
+
+  state.pruefung.datum = qs('#datum2').value || '';
+  state.pruefung.pruefer_name = qs('#pexName').value.trim();
+  state.pruefung.pruefer_bav = qs('#pexBav').value.trim();
+  state.pruefung.hauptfahrzeug_code = qs('#hauptfahrzeug').value;
+
+  state.pruefung.evu_bv_codes = qsa('#evuList input[type=checkbox]:checked').map(x=>x.value);
+  state.pruefung.netzteil_codes = qsa('#netzList input[type=checkbox]:checked').map(x=>x.value);
+
+  state.praxis.fahrten = collectFahrten();
+  const q = document.querySelector('input[name=qual]:checked');
+  state.praxis.leistungsqualifizierung = q ? q.value : 'gut';
+  const r = document.querySelector('input[name=result]:checked');
+  state.praxis.ergebnis = r ? r.value : 'bestanden';
+  state.praxis.begruendung = qs('#begruendung2').value;
+  state.praxis.ort = qs('#ort2').value;
+  state.praxis.ortdatum = qs('#ortdatum2').value;
+
+  state.selbstauskunft.weitere_fahrzeuge_codes_raw = qs('#weitereFahrzeuge').value;
+  state.selbstauskunft.hinweis = qs('#selbHinweis').value;
+  state.selbstauskunft.weitere_fahrzeuge_codes = cleanCodesCSV(state.selbstauskunft.weitere_fahrzeuge_codes_raw);
+
+  state.unterschriften.pruefer_base64png = signPex.toDataURL();
+  state.unterschriften.pruefling_base64png = signPruefling.toDataURL();
+
+  return JSON.parse(JSON.stringify(state));
+}
+
+function updateAbschlussVisibility(){
+  const panel = qs('#abschlussActions');
+  if(!panel) return;
+  try {
+    const payload = collectState();
+    const res = validateHPP(payload);
+    panel.hidden = !res.ok;
+  } catch {
+    panel.hidden = true;
+  }
 }
 
 async function initData(){
-  baureihen = await loadJSON(CONFIG.dataPaths.baureihen);
-  evu = await loadJSON(CONFIG.dataPaths.evuBv);
+  const baureihen = await loadJSON(CONFIG.dataPaths.baureihen);
+  const evu = await loadJSON(CONFIG.dataPaths.evuBv);
+  let netzteile = [];
+  try { netzteile = await loadJSON(CONFIG.dataPaths.netzteile); } catch { netzteile = []; }
 
-  // Baureihen dropdown
   const sel = qs('#hauptfahrzeug');
   sel.innerHTML = '';
   const op0 = document.createElement('option');
@@ -130,23 +170,36 @@ async function initData(){
     sel.appendChild(op);
   });
 
-  // EVU chips
-  const list = qs('#evuList');
-  list.innerHTML = '';
+  const evuList = qs('#evuList');
+  evuList.innerHTML = '';
   evu.forEach(code=>{
     const lab = document.createElement('label');
     lab.className = 'chip';
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.value = code;
-    cb.addEventListener('change', ()=>{
-      // no-op; collected on export
-    });
+    lab.appendChild(cb);
     const sp = document.createElement('span');
     sp.textContent = code;
-    lab.appendChild(cb);
     lab.appendChild(sp);
-    list.appendChild(lab);
+    evuList.appendChild(lab);
+  });
+
+  const netzList = qs('#netzList');
+  netzList.innerHTML = '';
+  (netzteile || []).forEach(item=>{
+    const code = (typeof item === 'string') ? item : item.code;
+    if(!code) return;
+    const lab = document.createElement('label');
+    lab.className = 'chip';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = code;
+    lab.appendChild(cb);
+    const sp = document.createElement('span');
+    sp.textContent = code;
+    lab.appendChild(sp);
+    netzList.appendChild(lab);
   });
 }
 
@@ -159,97 +212,50 @@ function initSignatures(){
       const id = btn.getAttribute('data-clear');
       if(id==='sigPex') signPex.clear();
       if(id==='sigPruefling') signPruefling.clear();
+      updateAbschlussVisibility();
     });
   });
-}
 
-function collectState(){
-  // Mitarbeitende
-  state.mitarbeiter.fuehrerscheinart = qs('#fsArt').value;
-  state.mitarbeiter.fuehrerscheinnummer = qs('#fsNr').value.trim();
-  state.mitarbeiter.name = qs('#name').value.trim();
-  state.mitarbeiter.vorname = qs('#vorname').value.trim();
-  state.mitarbeiter.bav_nummer = ''; // optional später
-
-  // Prüfung
-  state.pruefung.pruefart = 'HPP';
-  state.pruefung.datum = qs('#datum2').value || '';
-  state.pruefung.pruefer_name = qs('#pexName').value.trim();
-  state.pruefung.pruefer_bav = qs('#pexBav').value.trim();
-  state.pruefung.pruefer_id = state.pruefung.pruefer_bav ? `PEX-${state.pruefung.pruefer_bav}` : '';
-  state.pruefung.hauptfahrzeug_code = qs('#hauptfahrzeug').value;
-
-  // EVU list
-  state.pruefung.evu_bv_codes = qsa('#evuList input[type=checkbox]:checked').map(x=>x.value);
-
-  // Netzteile (free text -> codes list)
-  state.pruefung.netzteil_codes = cleanCodesCSV(qs('#netzteile').value);
-
-  // Praxis
-  state.praxis.fahrten = collectFahrten();
-  const q = document.querySelector('input[name=qual]:checked');
-  state.praxis.leistungsqualifizierung = q ? q.value : 'gut';
-  const r = document.querySelector('input[name=result]:checked');
-  state.praxis.ergebnis = r ? r.value : 'bestanden';
-  state.praxis.begruendung = qs('#begruendung2').value;
-  state.praxis.ort = qs('#ort2').value;
-  state.praxis.ortdatum = qs('#ortdatum2').value;
-
-  // Selbstauskunft
-  state.selbstauskunft.weitere_fahrzeuge_codes_raw = qs('#weitereFahrzeuge').value;
-  state.selbstauskunft.hinweis = qs('#selbHinweis').value;
-
-  // Unterschriften
-  state.unterschriften.pruefer_base64png = signPex.toDataURL();
-  state.unterschriften.pruefling_base64png = signPruefling.toDataURL();
-
-  return JSON.parse(JSON.stringify(state));
+  qs('#sigPex').addEventListener('pointerup', updateAbschlussVisibility);
+  qs('#sigPruefling').addEventListener('pointerup', updateAbschlussVisibility);
 }
 
 function bindUI(){
-  // Mirror FS number
-  qs('#fsNr').addEventListener('input', syncMirrorFields);
-  syncMirrorFields();
+  qs('#fsNr').addEventListener('input', ()=>{ syncMirrorFields(); updateAbschlussVisibility(); });
+  ['#name','#vorname'].forEach(id=> qs(id).addEventListener('input', updateAbschlussVisibility));
+  qs('#gebdatum').addEventListener('change', updateAbschlussVisibility);
+  qs('#pexName').addEventListener('input', updateAbschlussVisibility);
+  qs('#pexBav').addEventListener('input', updateAbschlussVisibility);
+  qs('#hauptfahrzeug').addEventListener('change', updateAbschlussVisibility);
+  qs('#weitereFahrzeuge').addEventListener('input', updateAbschlussVisibility);
 
-  // default dates
+  document.addEventListener('change', (e)=>{
+    if(e.target && e.target.matches('#evuList input[type=checkbox], #netzList input[type=checkbox]')) updateAbschlussVisibility();
+  });
+
   const today = new Date();
   const pad = (n)=> String(n).padStart(2,'0');
   const iso = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
   qs('#datum2').value = iso;
   qs('#ortdatum2').value = iso;
 
-  // Fahrten default row
   const tbody = qs('#fahrtenTable tbody');
   tbody.appendChild(buildFahrtenRow());
-
-  qs('#btnAddFahrt').addEventListener('click', ()=>{
-    tbody.appendChild(buildFahrtenRow());
-  });
+  qs('#btnAddFahrt').addEventListener('click', ()=> tbody.appendChild(buildFahrtenRow()));
 
   qs('#btnPrint').addEventListener('click', ()=> window.print());
-
-  qs('#btnReset').addEventListener('click', ()=>{
-    if(confirm('Alles zurücksetzen?')){
-      window.location.reload();
-    }
-  });
-
+  qs('#btnReset').addEventListener('click', ()=>{ if(confirm('Alles zurücksetzen?')) window.location.reload(); });
   qs('#btnExport').addEventListener('click', ()=>{
-    try{
-      const payload = collectState();
-      const res = validateHPP(payload);
-      if(!res.ok){
-        setStatus('Fehler: ' + res.errors.join(' '), false);
-        return;
-      }
-      // ensure selbstauskunft codes
-      payload.selbstauskunft.weitere_fahrzeuge_codes = cleanCodesCSV(payload.selbstauskunft.weitere_fahrzeuge_codes_raw);
-      downloadJSON(payload, payload.mitarbeiter.fuehrerscheinnummer);
-      setStatus('Export OK. JSON wurde heruntergeladen.', true);
-    } catch(e){
-      setStatus('Fehler: ' + e.message, false);
-    }
+    const payload = collectState();
+    const res = validateHPP(payload);
+    if(!res.ok){ setStatus('Fehler: ' + res.errors.join(' '), false); return; }
+    const key = payload.mitarbeiter.fuehrerscheinnummer || `${payload.mitarbeiter.name}_${payload.mitarbeiter.vorname}`;
+    downloadJSON(payload, key);
+    setStatus('Export OK. JSON wurde heruntergeladen.', true);
   });
+
+  syncMirrorFields();
+  updateAbschlussVisibility();
 }
 
 (async function main(){
@@ -257,7 +263,7 @@ function bindUI(){
     await initData();
     initSignatures();
     bindUI();
-    setStatus('Bereit. Bitte Formular ausfüllen und exportieren.', true);
+    setStatus('Bereit. Abschluss erscheint erst am Ende.', true);
   } catch(e){
     setStatus('Initialisierungsfehler: ' + e.message, false);
   }
