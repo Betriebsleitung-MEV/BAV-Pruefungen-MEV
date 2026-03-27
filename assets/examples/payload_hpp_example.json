@@ -1,0 +1,47 @@
+{
+  "mitarbeiter": {
+    "fuehrerscheinart": "CH",
+    "fuehrerscheinnummer": "12307",
+    "name": "MUSTER",
+    "vorname": "MAX",
+    "bav_nummer": ""
+  },
+  "pruefung": {
+    "pruefart": "HPP",
+    "datum": "2026-03-27",
+    "pruefer_id": "PEX-001",
+    "hauptfahrzeug_code": "425",
+    "evu_bv_codes": [
+      "MEV",
+      "MDW"
+    ],
+    "netzteil_codes": []
+  },
+  "praxis": {
+    "fahrten": [
+      {
+        "dienstart": "SD",
+        "zug_nummer": "D43537",
+        "von": "Weil am Rhein",
+        "bis": "Spiez",
+        "vmax": "100",
+        "anh_last_t": "",
+        "km": "152"
+      }
+    ],
+    "leistungsqualifizierung": "gut",
+    "begruendung": "",
+    "ergebnis": "bestanden"
+  },
+  "selbstauskunft": {
+    "weitere_fahrzeuge_codes": [
+      "185",
+      "186"
+    ],
+    "hinweis": "Separate Nachweise liegen nicht vor; Bestätigung durch Prüfling."
+  },
+  "unterschriften": {
+    "pruefer_base64png": "",
+    "pruefling_base64png": ""
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "mitarbeiter": {
+    "fuehrerscheinart": "EU",
+    "fuehrerscheinnummer": "DE 71 2014 20 57",
+    "name": "MUSTER",
+    "vorname": "MAX"
+  },
+  "selbstauskunft": {
+    "fahrzeuge_codes": [
+      "465",
+      "474"
+    ],
+    "status": "Selbstbestätigung",
+    "nachweise": "keine"
+  },
+  "unterschriften": {
+    "pruefling_base64png": ""
+  }
+}
