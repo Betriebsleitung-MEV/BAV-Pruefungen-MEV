@@ -12,6 +12,10 @@
   </header>
 
   <main class="container">
+
+    <!-- Bahnhof-Autocomplete (wird aus assets/data/bahnhoefe.json befüllt) -->
+    <datalist id="stationDatalist"></datalist>
+
     <!-- Seite 1 -->
     <section class="a4 page" id="page1">
       <div class="docHeader">
@@ -136,7 +140,7 @@
           <div class="formRow">
             <label>Weitere Fahrzeuge (Codes) – Selbstauskunft (optional)</label>
             <input id="weitereFahrzeuge" class="mono" type="text" placeholder="z. B. 185, 186" />
-            <div class="hint">Hinweis: Separate Nachweise liegen nicht vor; Bestätigung durch Prüfling separat im Protokoll vermerkt.</div>
+            <div class="hint">Hinweis: Separate Nachweise liegen nicht vor; Bestätigung separat im Protokoll vermerkt.</div>
           </div>
 
           <div class="sep"></div>
@@ -151,29 +155,49 @@
             <label class="check"><input id="modG" type="checkbox" /> G</label>
           </div>
 
-          <div class="formRow formRow--split">
-            <div>
-              <label>Kategorie (Text)</label>
-              <input id="kategorie" type="text" placeholder="z. B. B" />
-            </div>
-            <div>
-              <label>Praktische Einschränkung Vmax</label>
-              <input id="vmax" type="text" placeholder="km/h" />
-            </div>
+          <div class="formRow">
+            <label>Kategorie (Auswahl)</label>
+            <select id="kategorieSelect"></select>
+            <div class="hint">Quelle: assets/data/kategorien.json (optional)</div>
+          </div>
+
+          <div class="formRow">
+            <label>Kategorie (Text)</label>
+            <input id="kategorie" type="text" placeholder="z. B. B" />
+          </div>
+
+          <div class="formRow">
+            <label>Praktische Einschränkung Vmax</label>
+            <input id="vmax" type="text" placeholder="km/h" />
           </div>
         </div>
       </div>
 
       <div class="grid2" style="margin-top:10px;">
         <div class="box">
+          <div class="box__title">Netz (Codes)</div>
+          <div id="netzMainList" class="chipList"></div>
+          <div class="hint">Checkboxen. Quelle: assets/data/netze.json</div>
+        </div>
+
+        <div class="box">
           <div class="box__title">Netz / Netzteil(e) (Codes)</div>
           <div id="netzList" class="chipList"></div>
-          <div class="hint">Checkboxen. Quelle: assets/data/netzteile.json (erweiterbar).</div>
+          <div class="hint">Checkboxen. Quelle: assets/data/netzteile.json</div>
         </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px;">
         <div class="box">
           <div class="box__title">EVU(s) Betriebsvorschriften (Codes)</div>
           <div id="evuList" class="chipList"></div>
           <div class="hint">Nur Codes (PEX-selbsterklärend).</div>
+        </div>
+
+        <div class="box">
+          <div class="box__title">PP (Theorie) – FDV Fächer (Vorbereitung)</div>
+          <div id="fdvList" class="chipList"></div>
+          <div class="hint">Quelle: assets/data/fdv_faecher.json (für spätere PP-Maske)</div>
         </div>
       </div>
 
@@ -226,10 +250,13 @@
           <div class="rowActions no-print">
             <button id="btnAddFahrt" class="btn btn--small">Fahrt hinzufügen</button>
           </div>
+
+          <div class="hint">Bei „von/bis“ ist Autocomplete (bahnhoefe.json) aktiv.</div>
         </div>
 
         <div class="box">
           <div class="box__title">Leistungsqualifizierung gesamt</div>
+
           <div class="checkGrid">
             <label class="check"><input type="radio" name="qual" value="sehr gut" /> sehr gut</label>
             <label class="check"><input type="radio" name="qual" value="gut" checked /> gut</label>
@@ -243,6 +270,7 @@
           </div>
 
           <div class="box__title">Ergebnis der praktischen Prüfung</div>
+
           <div class="checkGrid">
             <label class="check"><input type="radio" name="result" value="bestanden" checked /> Prüfung bestanden</label>
             <label class="check"><input type="radio" name="result" value="nicht bestanden" /> Prüfung nicht bestanden</label>
@@ -279,7 +307,7 @@
 
           <div class="formRow">
             <label>Selbstauskunft – weitere Fahrzeuge (falls angegeben)</label>
-            <textarea id="selbHinweis" rows="3" class="mono" placeholder="Separate Nachweise liegen nicht vor; Bestätigung durch Prüfling."></textarea>
+            <textarea id="selbHinweis" rows="3" class="mono" placeholder="Separate Nachweise liegen nicht vor; Bestätigung separat."></textarea>
           </div>
         </div>
       </div>
@@ -291,7 +319,6 @@
       <div id="status" class="status"></div>
     </section>
 
-    <!-- Abschluss (Download/Druck/Reset erst hier sichtbar) -->
     <section class="no-print" style="max-width:980px;margin:0 auto 40px;">
       <div id="abschlussActions" class="status" hidden>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
