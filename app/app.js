@@ -45,6 +45,7 @@ let signPex, signPruefling;
 
 function setStatus(msg, ok=true){
   const s = qs('#status');
+  if(!s) return;
   s.className = 'status ' + (ok ? 'status--ok' : 'status--err');
   s.textContent = msg;
 }
@@ -52,6 +53,31 @@ function setStatus(msg, ok=true){
 function syncMirrorFields(){
   const a2 = qs('#ausweisNr2');
   if(a2) a2.value = qs('#fsNr').value;
+}
+
+function renderChipCheckboxes(containerSel, items){
+  const el = qs(containerSel);
+  if(!el) return;
+  el.innerHTML = '';
+
+  (items || []).forEach(item => {
+    const code = (typeof item === 'string') ? item : item.code;
+    if(!code) return;
+
+    const label = document.createElement('label');
+    label.className = 'chip';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = code;
+
+    const span = document.createElement('span');
+    span.textContent = code;
+
+    label.appendChild(cb);
+    label.appendChild(span);
+    el.appendChild(label);
+  });
 }
 
 function buildFahrtenRow(){
@@ -99,6 +125,8 @@ function buildFahrtenRow(){
 }
 
 function collectFahrten(){
+  const tbody = qs('#fahrtenTable tbody');
+  if(!tbody) return [];
   return qsa('#fahrtenTable tbody tr').map(tr=>{
     const obj = {};
     qsa('input,select', tr).forEach(el=> obj[el.dataset.key] = el.value);
@@ -170,37 +198,8 @@ async function initData(){
     sel.appendChild(op);
   });
 
-  const evuList = qs('#evuList');
-  evuList.innerHTML = '';
-  evu.forEach(code=>{
-    const lab = document.createElement('label');
-    lab.className = 'chip';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = code;
-    lab.appendChild(cb);
-    const sp = document.createElement('span');
-    sp.textContent = code;
-    lab.appendChild(sp);
-    evuList.appendChild(lab);
-  });
-
-  const netzList = qs('#netzList');
-  netzList.innerHTML = '';
-  (netzteile || []).forEach(item=>{
-    const code = (typeof item === 'string') ? item : item.code;
-    if(!code) return;
-    const lab = document.createElement('label');
-    lab.className = 'chip';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = code;
-    lab.appendChild(cb);
-    const sp = document.createElement('span');
-    sp.textContent = code;
-    lab.appendChild(sp);
-    netzList.appendChild(lab);
-  });
+  renderChipCheckboxes('#evuList', evu);
+  renderChipCheckboxes('#netzList', netzteile);
 }
 
 function initSignatures(){
@@ -216,18 +215,18 @@ function initSignatures(){
     });
   });
 
-  qs('#sigPex').addEventListener('pointerup', updateAbschlussVisibility);
-  qs('#sigPruefling').addEventListener('pointerup', updateAbschlussVisibility);
+  qs('#sigPex')?.addEventListener('pointerup', updateAbschlussVisibility);
+  qs('#sigPruefling')?.addEventListener('pointerup', updateAbschlussVisibility);
 }
 
 function bindUI(){
-  qs('#fsNr').addEventListener('input', ()=>{ syncMirrorFields(); updateAbschlussVisibility(); });
-  ['#name','#vorname'].forEach(id=> qs(id).addEventListener('input', updateAbschlussVisibility));
-  qs('#gebdatum').addEventListener('change', updateAbschlussVisibility);
-  qs('#pexName').addEventListener('input', updateAbschlussVisibility);
-  qs('#pexBav').addEventListener('input', updateAbschlussVisibility);
-  qs('#hauptfahrzeug').addEventListener('change', updateAbschlussVisibility);
-  qs('#weitereFahrzeuge').addEventListener('input', updateAbschlussVisibility);
+  qs('#fsNr')?.addEventListener('input', ()=>{ syncMirrorFields(); updateAbschlussVisibility(); });
+  ['#name','#vorname'].forEach(id=> qs(id)?.addEventListener('input', updateAbschlussVisibility));
+  qs('#gebdatum')?.addEventListener('change', updateAbschlussVisibility);
+  qs('#pexName')?.addEventListener('input', updateAbschlussVisibility);
+  qs('#pexBav')?.addEventListener('input', updateAbschlussVisibility);
+  qs('#hauptfahrzeug')?.addEventListener('change', updateAbschlussVisibility);
+  qs('#weitereFahrzeuge')?.addEventListener('input', updateAbschlussVisibility);
 
   document.addEventListener('change', (e)=>{
     if(e.target && e.target.matches('#evuList input[type=checkbox], #netzList input[type=checkbox]')) updateAbschlussVisibility();
@@ -241,11 +240,11 @@ function bindUI(){
 
   const tbody = qs('#fahrtenTable tbody');
   tbody.appendChild(buildFahrtenRow());
-  qs('#btnAddFahrt').addEventListener('click', ()=> tbody.appendChild(buildFahrtenRow()));
+  qs('#btnAddFahrt')?.addEventListener('click', ()=> tbody.appendChild(buildFahrtenRow()));
 
-  qs('#btnPrint').addEventListener('click', ()=> window.print());
-  qs('#btnReset').addEventListener('click', ()=>{ if(confirm('Alles zurücksetzen?')) window.location.reload(); });
-  qs('#btnExport').addEventListener('click', ()=>{
+  qs('#btnPrint')?.addEventListener('click', ()=> window.print());
+  qs('#btnReset')?.addEventListener('click', ()=>{ if(confirm('Alles zurücksetzen?')) window.location.reload(); });
+  qs('#btnExport')?.addEventListener('click', ()=>{
     const payload = collectState();
     const res = validateHPP(payload);
     if(!res.ok){ setStatus('Fehler: ' + res.errors.join(' '), false); return; }

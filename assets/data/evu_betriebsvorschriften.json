@@ -1,18 +1,17 @@
 [
+  "MEV",
+  "MDW",
+  "SBBIN",
+  "DBCCH",
   "BLSC",
   "CROSS",
-  "DBCCH",
-  "DBCDE",
+  "TXL",
+  "TR",
   "GTS",
-  "MDW",
-  "MEV",
-  "MRA",
   "RCCH",
   "RLC",
-  "SBB",
-  "SBBIN",
+  "MRA",
+  "DBCDE",
   "TAE",
-  "THURBO",
-  "TR",
-  "TXL"
+  "THURBO"
 ]

@@ -10,6 +10,8 @@ export function validateHPP(state){
 
   if(!name) errors.push('Name fehlt.');
   if(!vorname) errors.push('Vorname fehlt.');
+
+  // VTE 10: Ohne Führerscheinnummer ist Geburtsdatum Pflicht
   if(!fs && !geb) errors.push('VTE 10: Ohne Führerscheinnummer ist das Geburtsdatum Pflicht.');
 
   if(!state.pruefung.hauptfahrzeug_code) errors.push('HPP: Mindestens ein Fahrzeug (Baureihen-Code) muss erfasst werden.');
