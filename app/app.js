@@ -20,7 +20,9 @@ const state = {
     pruefer_bav: '',
     hauptfahrzeug_code: '',
     evu_bv_codes: [],
-    netzteil_codes: []
+    netz_codes: [],
+    netzteil_codes: [],
+    kategorie_code: ''
   },
   praxis: {
     fahrten: [],
@@ -52,7 +54,8 @@ function setStatus(msg, ok=true){
 
 function syncMirrorFields(){
   const a2 = qs('#ausweisNr2');
-  if(a2) a2.value = qs('#fsNr').value;
+  const fs = qs('#fsNr');
+  if(a2 && fs) a2.value = fs.value;
 }
 
 function renderChipCheckboxes(containerSel, items){
@@ -80,13 +83,61 @@ function renderChipCheckboxes(containerSel, items){
   });
 }
 
+function renderChipListReadonly(containerSel, items){
+  const el = qs(containerSel);
+  if(!el) return;
+  el.innerHTML = '';
+  (items || []).forEach(item => {
+    const code = (typeof item === 'string') ? item : item.code;
+    if(!code) return;
+    const span = document.createElement('span');
+    span.className = 'chip';
+    span.textContent = code;
+    el.appendChild(span);
+  });
+}
+
+function renderKategorieSelect(items){
+  const sel = qs('#kategorieSelect');
+  if(!sel) return;
+  sel.innerHTML = '';
+  const op0 = document.createElement('option');
+  op0.value = '';
+  op0.textContent = '—';
+  sel.appendChild(op0);
+
+  (items || []).forEach(code => {
+    const op = document.createElement('option');
+    op.value = code;
+    op.textContent = code;
+    sel.appendChild(op);
+  });
+}
+
+function fillStationDatalist(stations){
+  const dl = qs('#stationDatalist');
+  if(!dl) return;
+  dl.innerHTML = '';
+  (stations || []).forEach(s => {
+    // Erwartet: {name, kuerzel, codes}
+    const name = s.name || '';
+    const kuerzel = s.kuerzel || '';
+    if(!name && !kuerzel) return;
+
+    const opt = document.createElement('option');
+    // Nutzerfreundlich: "NAME (KÜRZEL)"
+    opt.value = kuerzel ? `${name} (${kuerzel})` : name;
+    dl.appendChild(opt);
+  });
+}
+
 function buildFahrtenRow(){
   const tr = document.createElement('tr');
   const fields = [
     {k:'dienstart', type:'select', opts:['','SD','ZV','RD','T']},
     {k:'zug_nummer', type:'text'},
-    {k:'von', type:'text'},
-    {k:'bis', type:'text'},
+    {k:'von', type:'station'},
+    {k:'bis', type:'station'},
     {k:'vmax', type:'text'},
     {k:'anh_last_t', type:'text'},
     {k:'km', type:'text'}
@@ -95,6 +146,7 @@ function buildFahrtenRow(){
   fields.forEach(f=>{
     const td = document.createElement('td');
     let el;
+
     if(f.type==='select'){
       el = document.createElement('select');
       f.opts.forEach(o=>{
@@ -105,7 +157,12 @@ function buildFahrtenRow(){
     } else {
       el = document.createElement('input');
       el.type = 'text';
+      if(f.type==='station'){
+        el.setAttribute('list', 'stationDatalist');
+        el.placeholder = 'Bahnhof';
+      }
     }
+
     el.dataset.key = f.k;
     td.appendChild(el);
     tr.appendChild(td);
@@ -117,6 +174,7 @@ function buildFahrtenRow(){
   btn.type = 'button';
   btn.className = 'btn btn--small';
   btn.textContent = '×';
+  btn.title = 'Zeile löschen';
   btn.addEventListener('click', ()=> tr.remove());
   tdDel.appendChild(btn);
   tr.appendChild(tdDel);
@@ -125,8 +183,6 @@ function buildFahrtenRow(){
 }
 
 function collectFahrten(){
-  const tbody = qs('#fahrtenTable tbody');
-  if(!tbody) return [];
   return qsa('#fahrtenTable tbody tr').map(tr=>{
     const obj = {};
     qsa('input,select', tr).forEach(el=> obj[el.dataset.key] = el.value);
@@ -135,35 +191,41 @@ function collectFahrten(){
 }
 
 function collectState(){
-  state.mitarbeiter.fuehrerscheinart = qs('#fsArt').value;
-  state.mitarbeiter.fuehrerscheinnummer = qs('#fsNr').value.trim();
-  state.mitarbeiter.name = qs('#name').value.trim();
-  state.mitarbeiter.vorname = qs('#vorname').value.trim();
-  state.mitarbeiter.geburtsdatum = qs('#gebdatum').value || '';
+  state.mitarbeiter.fuehrerscheinart = qs('#fsArt')?.value || '';
+  state.mitarbeiter.fuehrerscheinnummer = (qs('#fsNr')?.value || '').trim();
+  state.mitarbeiter.name = (qs('#name')?.value || '').trim();
+  state.mitarbeiter.vorname = (qs('#vorname')?.value || '').trim();
+  state.mitarbeiter.geburtsdatum = qs('#gebdatum')?.value || '';
 
-  state.pruefung.datum = qs('#datum2').value || '';
-  state.pruefung.pruefer_name = qs('#pexName').value.trim();
-  state.pruefung.pruefer_bav = qs('#pexBav').value.trim();
-  state.pruefung.hauptfahrzeug_code = qs('#hauptfahrzeug').value;
+  state.pruefung.datum = qs('#datum2')?.value || '';
+  state.pruefung.pruefer_name = (qs('#pexName')?.value || '').trim();
+  state.pruefung.pruefer_bav = (qs('#pexBav')?.value || '').trim();
+  state.pruefung.hauptfahrzeug_code = qs('#hauptfahrzeug')?.value || '';
 
   state.pruefung.evu_bv_codes = qsa('#evuList input[type=checkbox]:checked').map(x=>x.value);
   state.pruefung.netzteil_codes = qsa('#netzList input[type=checkbox]:checked').map(x=>x.value);
+  state.pruefung.netz_codes = qsa('#netzMainList input[type=checkbox]:checked').map(x=>x.value);
+
+  // Kategorie: Auswahl hat Vorrang, Text bleibt als fallback
+  const kSel = qs('#kategorieSelect')?.value || '';
+  const kTxt = (qs('#kategorie')?.value || '').trim();
+  state.pruefung.kategorie_code = kSel || kTxt;
 
   state.praxis.fahrten = collectFahrten();
   const q = document.querySelector('input[name=qual]:checked');
   state.praxis.leistungsqualifizierung = q ? q.value : 'gut';
   const r = document.querySelector('input[name=result]:checked');
   state.praxis.ergebnis = r ? r.value : 'bestanden';
-  state.praxis.begruendung = qs('#begruendung2').value;
-  state.praxis.ort = qs('#ort2').value;
-  state.praxis.ortdatum = qs('#ortdatum2').value;
+  state.praxis.begruendung = qs('#begruendung2')?.value || '';
+  state.praxis.ort = qs('#ort2')?.value || '';
+  state.praxis.ortdatum = qs('#ortdatum2')?.value || '';
 
-  state.selbstauskunft.weitere_fahrzeuge_codes_raw = qs('#weitereFahrzeuge').value;
-  state.selbstauskunft.hinweis = qs('#selbHinweis').value;
+  state.selbstauskunft.weitere_fahrzeuge_codes_raw = qs('#weitereFahrzeuge')?.value || '';
+  state.selbstauskunft.hinweis = qs('#selbHinweis')?.value || '';
   state.selbstauskunft.weitere_fahrzeuge_codes = cleanCodesCSV(state.selbstauskunft.weitere_fahrzeuge_codes_raw);
 
-  state.unterschriften.pruefer_base64png = signPex.toDataURL();
-  state.unterschriften.pruefling_base64png = signPruefling.toDataURL();
+  state.unterschriften.pruefer_base64png = signPex?.toDataURL() || '';
+  state.unterschriften.pruefling_base64png = signPruefling?.toDataURL() || '';
 
   return JSON.parse(JSON.stringify(state));
 }
@@ -181,42 +243,67 @@ function updateAbschlussVisibility(){
 }
 
 async function initData(){
+  // Pflicht: baureihen + evu
   const baureihen = await loadJSON(CONFIG.dataPaths.baureihen);
   const evu = await loadJSON(CONFIG.dataPaths.evuBv);
+
+  // Optional: netzteile, netze, kategorien, fdv, bahnhoefe
   let netzteile = [];
   try { netzteile = await loadJSON(CONFIG.dataPaths.netzteile); } catch { netzteile = []; }
 
-  const sel = qs('#hauptfahrzeug');
-  sel.innerHTML = '';
-  const op0 = document.createElement('option');
-  op0.value = ''; op0.textContent = '—';
-  sel.appendChild(op0);
-  baureihen.forEach(code=>{
-    const op = document.createElement('option');
-    op.value = code;
-    op.textContent = code;
-    sel.appendChild(op);
-  });
+  let netze = [];
+  try { netze = await loadJSON(CONFIG.dataPaths.netze); } catch { netze = []; }
 
+  let kategorien = [];
+  try { kategorien = await loadJSON(CONFIG.dataPaths.kategorien); } catch { kategorien = []; }
+
+  let fdv = [];
+  try { fdv = await loadJSON(CONFIG.dataPaths.fdvFaecher); } catch { fdv = []; }
+
+  let bahnhoefe = [];
+  try { bahnhoefe = await loadJSON(CONFIG.dataPaths.bahnhoefe); } catch { bahnhoefe = []; }
+
+  // Dropdown Baureihen
+  const sel = qs('#hauptfahrzeug');
+  if(sel){
+    sel.innerHTML = '';
+    const op0 = document.createElement('option');
+    op0.value = ''; op0.textContent = '—';
+    sel.appendChild(op0);
+    (baureihen || []).forEach(code=>{
+      const op = document.createElement('option');
+      op.value = code;
+      op.textContent = code;
+      sel.appendChild(op);
+    });
+  }
+
+  // Chips
   renderChipCheckboxes('#evuList', evu);
   renderChipCheckboxes('#netzList', netzteile);
+  renderChipCheckboxes('#netzMainList', netze);
+  renderKategorieSelect(kategorien);
+  renderChipListReadonly('#fdvList', fdv);
+  fillStationDatalist(bahnhoefe);
 }
 
 function initSignatures(){
-  signPex = new SignPad(qs('#sigPex'));
-  signPruefling = new SignPad(qs('#sigPruefling'));
+  const c1 = qs('#sigPex');
+  const c2 = qs('#sigPruefling');
+  if(c1) signPex = new SignPad(c1);
+  if(c2) signPruefling = new SignPad(c2);
 
   qsa('[data-clear]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = btn.getAttribute('data-clear');
-      if(id==='sigPex') signPex.clear();
-      if(id==='sigPruefling') signPruefling.clear();
+      if(id==='sigPex' && signPex) signPex.clear();
+      if(id==='sigPruefling' && signPruefling) signPruefling.clear();
       updateAbschlussVisibility();
     });
   });
 
-  qs('#sigPex')?.addEventListener('pointerup', updateAbschlussVisibility);
-  qs('#sigPruefling')?.addEventListener('pointerup', updateAbschlussVisibility);
+  c1?.addEventListener('pointerup', updateAbschlussVisibility);
+  c2?.addEventListener('pointerup', updateAbschlussVisibility);
 }
 
 function bindUI(){
@@ -227,21 +314,30 @@ function bindUI(){
   qs('#pexBav')?.addEventListener('input', updateAbschlussVisibility);
   qs('#hauptfahrzeug')?.addEventListener('change', updateAbschlussVisibility);
   qs('#weitereFahrzeuge')?.addEventListener('input', updateAbschlussVisibility);
+  qs('#kategorieSelect')?.addEventListener('change', updateAbschlussVisibility);
+  qs('#kategorie')?.addEventListener('input', updateAbschlussVisibility);
 
   document.addEventListener('change', (e)=>{
-    if(e.target && e.target.matches('#evuList input[type=checkbox], #netzList input[type=checkbox]')) updateAbschlussVisibility();
+    if(e.target && e.target.matches('#evuList input[type=checkbox], #netzList input[type=checkbox], #netzMainList input[type=checkbox]')){
+      updateAbschlussVisibility();
+    }
   });
 
+  // default dates
   const today = new Date();
   const pad = (n)=> String(n).padStart(2,'0');
   const iso = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
-  qs('#datum2').value = iso;
-  qs('#ortdatum2').value = iso;
+  if(qs('#datum2')) qs('#datum2').value = iso;
+  if(qs('#ortdatum2')) qs('#ortdatum2').value = iso;
 
+  // Fahrten
   const tbody = qs('#fahrtenTable tbody');
-  tbody.appendChild(buildFahrtenRow());
-  qs('#btnAddFahrt')?.addEventListener('click', ()=> tbody.appendChild(buildFahrtenRow()));
+  if(tbody){
+    tbody.appendChild(buildFahrtenRow());
+    qs('#btnAddFahrt')?.addEventListener('click', ()=> tbody.appendChild(buildFahrtenRow()));
+  }
 
+  // Abschlussbuttons
   qs('#btnPrint')?.addEventListener('click', ()=> window.print());
   qs('#btnReset')?.addEventListener('click', ()=>{ if(confirm('Alles zurücksetzen?')) window.location.reload(); });
   qs('#btnExport')?.addEventListener('click', ()=>{
