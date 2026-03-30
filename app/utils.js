@@ -11,6 +11,9 @@ export function nowStamp(){
 }
 export function cleanCodesCSV(s){
   if(!s) return [];
-  return s.split(/[,;
-]+/).map(x=>x.trim()).filter(Boolean);
+  return s
+    .split(/[,;
+]+/)
+    .map(x => x.trim())
+    .filter(Boolean);
 }
